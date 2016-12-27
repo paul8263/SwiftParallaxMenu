@@ -29,7 +29,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let rightMenuViewController = storyboard.instantiateViewController(withIdentifier: "rightMenuTableViewController")
         let menuViewController = PLParallaxViewController(withMainViewController: mainViewController, leftMenuViewController: leftMenuViewController, rightMenuViewController: rightMenuViewController)
         
-        menuViewController.setBackground(withImage: UIImage(named: "backgroundImage")!)
+        menuViewController.configBackground(withImage: UIImage(named: "backgroundImage")!)
         
         window?.rootViewController = menuViewController
         window?.makeKeyAndVisible()

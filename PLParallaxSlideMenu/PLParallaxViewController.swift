@@ -113,9 +113,42 @@ class PLParallaxViewController: UIViewController {
     
     private let rightMenuContainerView = UIView()
     
-    func setBackground(withImage image: UIImage) {
+//    Configuration method
+    func configBackground(withImage image: UIImage) {
         backgroundImage = image
     }
+    
+    func configLeftSlideMenu(withOffsetY offsetY: CGFloat, width: CGFloat) {
+        leftSlideMenuOffsetY = offsetY
+        leftSlideMenuWidth = width
+        setupLeftMenuContainerView()
+    }
+    
+    func configRightSlideMenu(withOffsetY offsetY: CGFloat, width: CGFloat) {
+        rightSlideMenuOffsetY = offsetY
+        rightSlideMenuWidth = width
+        setupRightMenuContainerView()
+    }
+    
+    func configSlideMenu(withOffsetY offsetY: CGFloat, width: CGFloat) {
+        configLeftSlideMenu(withOffsetY: offsetY, width: width)
+        configRightSlideMenu(withOffsetY: offsetY, width: width)
+    }
+    
+    func configMainViewZoomedOffsetXWithLeftMenuShown(offsetX: CGFloat) {
+        mainViewZoomedOffsetXWithLeftMenuShown = offsetX
+    }
+    
+    func configMainViewZoomedOffsetXWithRightMenuShown(offsetX: CGFloat) {
+        mainViewZoomedOffsetXWithRightMenuShown = offsetX
+    }
+    
+    func configMainViewZoomedOffsetXWithSlideMenuShown(offsetX: CGFloat) {
+        configMainViewZoomedOffsetXWithLeftMenuShown(offsetX: offsetX)
+        configMainViewZoomedOffsetXWithRightMenuShown(offsetX: offsetX)
+    }
+    
+//    ---------------------------------------------------
     
     private func setupViewController(toContainerView containerView: UIView, viewController: UIViewController) {
         addChildViewController(viewController)
@@ -125,7 +158,6 @@ class PLParallaxViewController: UIViewController {
     }
     
     private func setupMainViewContainerView() {
-        view.addSubview(mainViewControllerContainerView)
         mainViewControllerContainerView.frame = view.frame
         mainViewController.view.frame = view.frame
     }
@@ -144,17 +176,17 @@ class PLParallaxViewController: UIViewController {
     }
     
     private func setupLeftMenuContainerView() {
-        view.addSubview(leftMenuContainerView)
         leftMenuContainerView.frame = CGRect(x: view.frame.origin.x, y: view.frame.origin.y + leftSlideMenuOffsetY, width: leftSlideMenuWidth, height: view.frame.height - 2 * leftSlideMenuOffsetY)
         leftMenuViewController?.view.frame = leftMenuContainerView.bounds
         leftMenuViewController?.view.backgroundColor = UIColor.clear
+        leftMenuContainerView.isHidden = true
     }
     
     private func setupRightMenuContainerView() {
-        view.addSubview(rightMenuContainerView)
-        rightMenuContainerView.frame = CGRect(x: view.frame.width - rightSlideMenuWidth , y: view.frame.origin.y + rightSlideMenuOffsetY, width: rightSlideMenuWidth, height: view.frame.height - 2 * leftSlideMenuOffsetY)
-        rightMenuViewController?.view.frame = leftMenuContainerView.bounds
+        rightMenuContainerView.frame = CGRect(x: view.frame.width - rightSlideMenuWidth , y: view.frame.origin.y + rightSlideMenuOffsetY, width: rightSlideMenuWidth, height: view.frame.height - 2 * rightSlideMenuOffsetY)
+        rightMenuViewController?.view.frame = rightMenuContainerView.bounds
         rightMenuViewController?.view.backgroundColor = UIColor.clear
+        rightMenuContainerView.isHidden = true
     }
 
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
@@ -268,6 +300,10 @@ class PLParallaxViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        view.addSubview(leftMenuContainerView)
+        view.addSubview(rightMenuContainerView)
+        view.addSubview(mainViewControllerContainerView)
 
         setupViewController(toContainerView: mainViewControllerContainerView, viewController: mainViewController)
         if let leftVC = leftMenuViewController {
@@ -281,6 +317,7 @@ class PLParallaxViewController: UIViewController {
         
         setupMainViewContainerView()
         setupBackgroundImageView()
+        view.layoutIfNeeded()
     }
 
     override func didReceiveMemoryWarning() {
