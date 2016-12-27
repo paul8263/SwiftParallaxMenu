@@ -16,7 +16,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        
+        setupParallexMenuViewController()
+        
         return true
+    }
+    
+    private func setupParallexMenuViewController() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let mainViewController = storyboard.instantiateViewController(withIdentifier: "mainViewController") as! MainViewController
+        let leftMenuViewController = storyboard.instantiateViewController(withIdentifier: "leftMenuTableViewController") as! LeftMenuTableViewController
+        let rightMenuViewController = storyboard.instantiateViewController(withIdentifier: "rightMenuTableViewController")
+        let menuViewController = PLParallaxViewController(withMainViewController: mainViewController, leftMenuViewController: leftMenuViewController, rightMenuViewController: rightMenuViewController)
+        
+        menuViewController.setBackground(withImage: UIImage(named: "backgroundImage")!)
+        
+        window?.rootViewController = menuViewController
+        window?.makeKeyAndVisible()
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
