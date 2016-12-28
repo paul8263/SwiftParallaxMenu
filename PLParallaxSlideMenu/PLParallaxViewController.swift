@@ -70,6 +70,18 @@ class PLParallaxViewController: UIViewController {
     
     private(set) var showMenuAnimationDuration = 0.5
     
+    private(set) var backgroundImageViewZoomScale: CGFloat = 1.3
+    
+    private(set) var mainMenuViewZoomScale: CGFloat = 0.5
+    
+    private var backgroundImageViewTransform: CGAffineTransform {
+        return CGAffineTransform(scaleX: backgroundImageViewZoomScale, y: backgroundImageViewZoomScale)
+    }
+    
+    private var mainMenuViewTransform: CGAffineTransform {
+        return CGAffineTransform(scaleX: mainMenuViewZoomScale, y: mainMenuViewZoomScale)
+    }
+    
     var leftMenuViewController: UIViewController? {
         willSet {
             if let vc = newValue {
@@ -146,6 +158,14 @@ class PLParallaxViewController: UIViewController {
     func configMainViewZoomedOffsetXWithSlideMenuShown(offsetX: CGFloat) {
         configMainViewZoomedOffsetXWithLeftMenuShown(offsetX: offsetX)
         configMainViewZoomedOffsetXWithRightMenuShown(offsetX: offsetX)
+    }
+    
+    func configBackgroundImageViewZoomScale(scale: CGFloat) {
+        backgroundImageViewZoomScale = scale
+    }
+    
+    func configMainMenuViewZoomScale(scale: CGFloat) {
+        mainMenuViewZoomScale = scale
     }
     
 //    ---------------------------------------------------
@@ -232,10 +252,10 @@ class PLParallaxViewController: UIViewController {
         mainViewControllerContainerView.addSubview(snapshot)
         mainViewController?.view.removeFromSuperview()
         
-        backgroundImageContainerView.transform = CGAffineTransform(scaleX: 1.3, y: 1.3)
+        backgroundImageContainerView.transform = backgroundImageViewTransform
         
         UIView.animate(withDuration: showMenuAnimationDuration) {
-            self.mainViewControllerContainerView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+            self.mainViewControllerContainerView.transform = self.mainMenuViewTransform
             if toSlideMenuStatus == .leftOpened {
                 self.mainViewControllerContainerView.frame.origin.x += self.mainViewZoomedOffsetXWithLeftMenuShown
             } else if toSlideMenuStatus == .rightOpened {
@@ -278,7 +298,7 @@ class PLParallaxViewController: UIViewController {
             } else if fromStatus == .rightOpened {
                 self.rightMenuContainerView.alpha = 0
             }
-            self.backgroundImageContainerView.transform = CGAffineTransform(scaleX: 1.3, y: 1.3)
+            self.backgroundImageContainerView.transform = self.backgroundImageViewTransform
             
         }) { (finished) in
             self.mainViewControllerContainerView.addSubview(self.mainViewController.view)

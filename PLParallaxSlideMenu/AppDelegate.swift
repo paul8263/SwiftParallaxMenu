@@ -31,6 +31,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         menuViewController.configBackground(withImage: UIImage(named: "backgroundImage")!)
         
+        
+        menuViewController.configRightSlideMenu(withOffsetY: 200, width: 150)
+        menuViewController.configLeftSlideMenu(withOffsetY: 200, width: 150)
+        menuViewController.configMainViewZoomedOffsetXWithSlideMenuShown(offsetX: 150)
+        
         window?.rootViewController = menuViewController
         window?.makeKeyAndVisible()
     }
