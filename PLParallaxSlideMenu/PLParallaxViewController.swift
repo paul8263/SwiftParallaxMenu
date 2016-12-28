@@ -93,6 +93,11 @@ public class PLParallaxViewController: UIViewController {
         }
     }
     /**
+     Helper status for determine the status bar style
+     */
+    private var willTransitionToStatus: SlideMenuStatus = .bothClosed
+    
+    /**
      The Y axis offset from the screen top to the top side of the left slide menu
     */
     private(set) var leftSlideMenuOffsetY = CGFloat(100)
@@ -160,6 +165,16 @@ public class PLParallaxViewController: UIViewController {
     private var mainViewTransform: CGAffineTransform {
         return CGAffineTransform(scaleX: mainViewZoomScale, y: mainViewZoomScale)
     }
+    
+    /**
+     Preferred status bar style when main menu is shown
+     */
+    private(set) var preferredStatusBarStyleForMainMenu: UIStatusBarStyle = .default
+    
+    /**
+     Preferred status bar style when slide menu is shown
+     */
+    private(set) var preferredStatusBarStyleForSlideMenu: UIStatusBarStyle = .lightContent
     
     /**
      Left menu view controller
@@ -387,6 +402,24 @@ public class PLParallaxViewController: UIViewController {
         showMenuAnimationDuration = second
     }
     
+    /**
+     Config preferred status bar style for main menu
+     
+     - parameter style: Statue bar style
+     */
+    func configPreferredStatusBarStyleForMainMenu(style: UIStatusBarStyle) {
+        preferredStatusBarStyleForMainMenu = style
+    }
+    
+    /**
+     Config preferred status bar style for slide menu
+     
+     - parameter style: Statue bar style
+     */
+    func configPreferredStatusBarStyleForSlideMenu(style: UIStatusBarStyle) {
+        preferredStatusBarStyleForSlideMenu = style
+    }
+    
 //    ---------------------------------------------------
 //    Setup Functions
     /**
@@ -511,6 +544,9 @@ public class PLParallaxViewController: UIViewController {
         if toSlideMenuStatus == .bothClosed {
             fatalError("You cannot set toSlideMenuStatus to bothClosed in function showMenuViewController:toSlideMenuStatus")
         }
+        
+        willTransitionToStatus = toSlideMenuStatus
+        
         rightMenuContainerView.isHidden = toSlideMenuStatus == .leftOpened
         leftMenuContainerView.isHidden = toSlideMenuStatus == .rightOpened
         leftMenuContainerView.alpha = 0
@@ -557,6 +593,8 @@ public class PLParallaxViewController: UIViewController {
         if percent < 0 || percent > 1 {
             fatalError("Illegal argument for percent in function showMenuViewController:toSlideMenuStatus:withPercent")
         }
+        willTransitionToStatus = toSlideMenuStatus
+        
         rightMenuContainerView.isHidden = toSlideMenuStatus == .leftOpened
         leftMenuContainerView.isHidden = toSlideMenuStatus == .rightOpened
         leftMenuContainerView.alpha = 0
@@ -642,6 +680,8 @@ public class PLParallaxViewController: UIViewController {
         if fromStatus == .bothClosed {
             fatalError("You cannot set from status with bothClosed in method showMainViewController:fromStatus")
         }
+        
+        willTransitionToStatus = .bothClosed
         
         UIView.animate(withDuration: showMenuAnimationDuration, animations: {
             self.mainViewControllerContainerView.transform = CGAffineTransform.identity
@@ -816,13 +856,13 @@ public class PLParallaxViewController: UIViewController {
     }
     
     override public var preferredStatusBarStyle: UIStatusBarStyle {
-        switch slideMenuStatus {
+        switch willTransitionToStatus {
         case .bothClosed:
-            return .default
+            return preferredStatusBarStyleForMainMenu
         case .leftOpened:
-            return .lightContent
+            return preferredStatusBarStyleForSlideMenu
         case .rightOpened:
-            return .lightContent
+            return preferredStatusBarStyleForSlideMenu
         }
     }
 
