@@ -391,7 +391,7 @@ class PLParallaxViewController: UIViewController {
         }
     }
     
-    private func setupPanGesture(fromScreenEdge: UIRectEdge) {
+    private func setupScreenEdgePanGesture(fromScreenEdge: UIRectEdge) {
         let screenEdgePanGesture = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(screenEdgePanGestureTriggered(gesture:)))
         screenEdgePanGesture.edges = fromScreenEdge
         view.addGestureRecognizer(screenEdgePanGesture)
@@ -478,12 +478,12 @@ class PLParallaxViewController: UIViewController {
         view.layoutIfNeeded()
         
         
-        if isLeftScreenEdgePanGestureEnabled {
-            setupPanGesture(fromScreenEdge: .left)
+        if isLeftScreenEdgePanGestureEnabled && leftMenuViewController != nil {
+            setupScreenEdgePanGesture(fromScreenEdge: .left)
         }
         
-        if isRightScreenEdgePanGestureEnabled {
-            setupPanGesture(fromScreenEdge: .right)
+        if isRightScreenEdgePanGestureEnabled && rightMenuViewController != nil {
+            setupScreenEdgePanGesture(fromScreenEdge: .right)
         }
     }
 
