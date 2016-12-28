@@ -29,8 +29,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let rightMenuViewController = storyboard.instantiateViewController(withIdentifier: "rightMenuTableViewController")
         let menuViewController = PLParallaxViewController(withMainViewController: mainViewController, leftMenuViewController: leftMenuViewController, rightMenuViewController: rightMenuViewController)
         
-        menuViewController.configBackground(withImage: UIImage(named: "backgroundImage")!)
+//        menuViewController.rightMenuViewController = nil
         
+        menuViewController.configBackground(withImage: UIImage(named: "backgroundImage")!)
         
         menuViewController.configRightSlideMenu(withOffsetY: 200, width: 150)
         menuViewController.configLeftSlideMenu(withOffsetY: 200, width: 150)
