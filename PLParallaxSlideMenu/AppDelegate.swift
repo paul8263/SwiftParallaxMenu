@@ -36,6 +36,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         menuViewController.configLeftSlideMenu(withOffsetY: 200, width: 150)
         menuViewController.configMainViewZoomedOffsetXWithSlideMenuShown(offsetX: 150)
         
+        menuViewController.configLeftMenuGestureEnabled(enabled: true)
+        menuViewController.configRightMenuGestureEnabled(enabled: true)
+        
         window?.rootViewController = menuViewController
         window?.makeKeyAndVisible()
     }

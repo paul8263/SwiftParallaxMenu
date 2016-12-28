@@ -45,9 +45,23 @@ extension UIViewController {
     }
 }
 
-class PLParallaxViewController: UIViewController {
+public class PLParallaxViewController: UIViewController {
     
-    private(set) var slideMenuStatus: SlideMenuStatus = .bothClosed
+    private(set) var slideMenuStatus: SlideMenuStatus = .bothClosed {
+        didSet {
+            switch slideMenuStatus {
+            case .bothClosed:
+                enableScreenEdgeGestureRecognizer()
+                disableCloseMenuPanGestureRecognizer()
+            case .leftOpened:
+                disableScreenEdgeGestureRecognizer()
+                enableCloseLeftMenuPanGestureRecognizer()
+            case .rightOpened:
+                disableCloseMenuPanGestureRecognizer()
+                enableCloseRightMenuPanGestureRecognizer()
+            }
+        }
+    }
     
     private(set) var leftSlideMenuOffsetY = CGFloat(100)
     
@@ -115,9 +129,29 @@ class PLParallaxViewController: UIViewController {
     
     private(set) var backgroundImage: UIImage?
     
-    private(set) var isLeftScreenEdgePanGestureEnabled = true
+    private(set) var isLeftScreenEdgePanGestureEnabled = false {
+        willSet {
+            if newValue && leftMenuViewController != nil {
+                setupScreenEdgePanGesture(fromScreenEdge: .left)
+                setupCloseLeftMenuPanGesture()
+            } else {
+                leftScreenEdgePanGestureRecognizer = nil
+                closeLeftMenuPanGestureRecognizer = nil
+            }
+        }
+    }
     
-    private(set) var isRightScreenEdgePanGestureEnabled = true
+    private(set) var isRightScreenEdgePanGestureEnabled = false {
+        willSet {
+            if newValue && rightMenuViewController != nil {
+                setupScreenEdgePanGesture(fromScreenEdge: .right)
+                setupCloseRightMenuPanGesture()
+            } else {
+                rightScreenEdgePanGestureRecognizer = nil
+                closeRightMenuPanGestureRecognizer = nil
+            }
+        }
+    }
     
     private let mainViewControllerContainerView = UIView()
     
@@ -181,6 +215,14 @@ class PLParallaxViewController: UIViewController {
         mainMenuViewZoomScale = scale
     }
     
+    func configLeftMenuGestureEnabled(enabled: Bool) {
+        isLeftScreenEdgePanGestureEnabled = enabled
+    }
+    
+    func configRightMenuGestureEnabled(enabled: Bool) {
+        isRightScreenEdgePanGestureEnabled = enabled
+    }
+    
 //    ---------------------------------------------------
     
     private func setupViewController(toContainerView containerView: UIView, viewController: UIViewController) {
@@ -226,7 +268,7 @@ class PLParallaxViewController: UIViewController {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
     
@@ -255,7 +297,6 @@ class PLParallaxViewController: UIViewController {
         if toSlideMenuStatus == .bothClosed {
             fatalError("You cannot set toSlideMenuStatus to bothClosed in function showMenuViewController:toSlideMenuStatus")
         }
-        slideMenuStatus = toSlideMenuStatus
         rightMenuContainerView.isHidden = toSlideMenuStatus == .leftOpened
         leftMenuContainerView.isHidden = toSlideMenuStatus == .rightOpened
         leftMenuContainerView.alpha = 0
@@ -285,7 +326,7 @@ class PLParallaxViewController: UIViewController {
             }
             self.backgroundImageContainerView.transform = CGAffineTransform.identity
         }) { (finished) in
-            self.disableScreenEdgeGestureRecognizer()
+            self.slideMenuStatus = toSlideMenuStatus
         }
     }
     
@@ -296,7 +337,6 @@ class PLParallaxViewController: UIViewController {
         if percent < 0 || percent > 1 {
             fatalError("Illegal argument for percent in function showMenuViewController:toSlideMenuStatus:withPercent")
         }
-        slideMenuStatus = toSlideMenuStatus
         rightMenuContainerView.isHidden = toSlideMenuStatus == .leftOpened
         leftMenuContainerView.isHidden = toSlideMenuStatus == .rightOpened
         leftMenuContainerView.alpha = 0
@@ -330,7 +370,6 @@ class PLParallaxViewController: UIViewController {
             fatalError("You cannot set toSlideMenuStatus to bothClosed in function finishShowMenuViewControllerAnimating:toSlideMenuStatus:shouldComplete")
         }
         if shouldComplete {
-            slideMenuStatus = toSlideMenuStatus
             let baseMainViewOriginX = view.bounds.width * (1 - mainMenuViewZoomScale) / 2
             UIView.animate(withDuration: showMenuAnimationDuration, animations: {
                 self.mainViewControllerContainerView.transform = self.mainMenuViewTransform
@@ -347,10 +386,9 @@ class PLParallaxViewController: UIViewController {
                 }
                 self.backgroundImageContainerView.transform = CGAffineTransform.identity
             }, completion: {(finished)in
-                self.disableScreenEdgeGestureRecognizer()
+                self.slideMenuStatus = toSlideMenuStatus
             })
         } else {
-            slideMenuStatus = .bothClosed
             showMainViewController(fromStatus: toSlideMenuStatus)
         }
     }
@@ -370,7 +408,7 @@ class PLParallaxViewController: UIViewController {
         if fromStatus == .bothClosed {
             fatalError("You cannot set from status with bothClosed in method showMainViewController:fromStatus")
         }
-        slideMenuStatus = .bothClosed
+        
         UIView.animate(withDuration: showMenuAnimationDuration, animations: {
             self.mainViewControllerContainerView.transform = CGAffineTransform.identity
             self.mainViewControllerContainerView.frame = self.view.frame
@@ -387,7 +425,7 @@ class PLParallaxViewController: UIViewController {
             self.mainViewController.view.frame = self.view.frame
             self.mainViewControllerContainerView.viewWithTag(999)?.removeFromSuperview()
             
-            self.enableScreenEdgeGestureRecognizer()
+            self.slideMenuStatus = .bothClosed
         }
     }
     
@@ -410,6 +448,19 @@ class PLParallaxViewController: UIViewController {
     private func disableScreenEdgeGestureRecognizer() {
         leftScreenEdgePanGestureRecognizer?.isEnabled = false
         rightScreenEdgePanGestureRecognizer?.isEnabled = false
+    }
+    
+    private func enableCloseLeftMenuPanGestureRecognizer() {
+        closeLeftMenuPanGestureRecognizer?.isEnabled = true
+    }
+    
+    private func enableCloseRightMenuPanGestureRecognizer() {
+        closeRightMenuPanGestureRecognizer?.isEnabled = true
+    }
+    
+    private func disableCloseMenuPanGestureRecognizer() {
+        closeLeftMenuPanGestureRecognizer?.isEnabled = false
+        closeRightMenuPanGestureRecognizer?.isEnabled = false
     }
     
     func screenEdgePanGestureTriggered(gesture: UIScreenEdgePanGestureRecognizer) {
@@ -445,7 +496,67 @@ class PLParallaxViewController: UIViewController {
         }
     }
     
-    override var preferredStatusBarStyle: UIStatusBarStyle {
+    private func setupCloseLeftMenuPanGesture() {
+        let gesture = UIPanGestureRecognizer(target: self, action: #selector(closeLeftMenuPanGestureTriggered(gesture:)))
+        self.closeLeftMenuPanGestureRecognizer = gesture
+        gesture.isEnabled = false
+        gesture.delegate = self
+        view.addGestureRecognizer(gesture)
+    }
+    
+    func closeLeftMenuPanGestureTriggered(gesture: UIPanGestureRecognizer) {
+        let percent = fabs(gesture.translation(in: view).x) / view.bounds.size.width
+        switch gesture.state {
+        case .began:
+            break
+        case .changed:
+            showMenuViewControllerAnimating(toSlideMenuStatus: .leftOpened, withPercent: 1 - percent)
+        case .ended:
+            if percent >= 0.5 {
+                showMainViewController(fromStatus: .leftOpened)
+            } else {
+                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .leftOpened, shouldComplete: true)
+            }
+        default:
+            if percent >= 0.5 {
+                showMainViewController(fromStatus: .leftOpened)
+            } else {
+                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .leftOpened, shouldComplete: true)
+            }
+        }
+    }
+    
+    private func setupCloseRightMenuPanGesture() {
+        let gesture = UIPanGestureRecognizer(target: self, action: #selector(closeRightMenuPanGestureTriggered(gesture:)))
+        self.closeRightMenuPanGestureRecognizer = gesture
+        gesture.isEnabled = false
+        gesture.delegate = self
+        view.addGestureRecognizer(gesture)
+    }
+    
+    func closeRightMenuPanGestureTriggered(gesture: UIPanGestureRecognizer) {
+        let percent = fabs(gesture.translation(in: view).x) / view.bounds.size.width
+        switch gesture.state {
+        case .began:
+            break
+        case .changed:
+            showMenuViewControllerAnimating(toSlideMenuStatus: .rightOpened, withPercent: 1 - percent)
+        case .ended:
+            if percent >= 0.5 {
+                showMainViewController(fromStatus: .rightOpened)
+            } else {
+                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .rightOpened, shouldComplete: true)
+            }
+        default:
+            if percent >= 0.5 {
+                showMainViewController(fromStatus: .leftOpened)
+            } else {
+                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .rightOpened, shouldComplete: true)
+            }
+        }
+    }
+    
+    override public var preferredStatusBarStyle: UIStatusBarStyle {
         switch slideMenuStatus {
         case .bothClosed:
             return .default
@@ -456,7 +567,7 @@ class PLParallaxViewController: UIViewController {
         }
     }
 
-    override func viewDidLoad() {
+    override public func viewDidLoad() {
         super.viewDidLoad()
         
         view.addSubview(leftMenuContainerView)
@@ -480,18 +591,23 @@ class PLParallaxViewController: UIViewController {
         
         if isLeftScreenEdgePanGestureEnabled && leftMenuViewController != nil {
             setupScreenEdgePanGesture(fromScreenEdge: .left)
+            
+            setupCloseLeftMenuPanGesture()
         }
         
         if isRightScreenEdgePanGestureEnabled && rightMenuViewController != nil {
             setupScreenEdgePanGesture(fromScreenEdge: .right)
+            
+            setupCloseRightMenuPanGesture()
         }
+        
+        disableCloseMenuPanGestureRecognizer()
     }
 
-    override func didReceiveMemoryWarning() {
+    override public func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
 
     /*
     // MARK: - Navigation
@@ -504,3 +620,20 @@ class PLParallaxViewController: UIViewController {
     */
 
 }
+
+extension PLParallaxViewController: UIGestureRecognizerDelegate {
+    public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        if let g = gestureRecognizer as? UIPanGestureRecognizer {
+            switch slideMenuStatus {
+            case .bothClosed:
+                return false
+            case .leftOpened:
+                return g.translation(in: view).x < 0
+            case .rightOpened:
+                return g.translation(in: view).x > 0
+            }
+        }
+        return false
+    }
+}
+
