@@ -427,11 +427,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = V537LP73QG;
 				INFOPLIST_FILE = PLParallaxSlideMenu/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = paultech.PLParallaxSlideMenu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Debug;
 		};
@@ -441,11 +442,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = V537LP73QG;
 				INFOPLIST_FILE = PLParallaxSlideMenu/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = paultech.PLParallaxSlideMenu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Release;
 		};
@@ -526,6 +528,7 @@
 				2BBC3D4B1E11F9D200B12AF2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		2BBC3D4C1E11F9D200B12AF2 /* Build configuration list for PBXNativeTarget "PLParallaxSlideMenuTests" */ = {
 			isa = XCConfigurationList;
@@ -534,6 +537,7 @@
 				2BBC3D4E1E11F9D200B12AF2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		2BBC3D4F1E11F9D200B12AF2 /* Build configuration list for PBXNativeTarget "PLParallaxSlideMenuUITests" */ = {
 			isa = XCConfigurationList;
@@ -542,6 +546,7 @@
 				2BBC3D511E11F9D200B12AF2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

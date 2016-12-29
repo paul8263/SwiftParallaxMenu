@@ -232,11 +232,11 @@ public class PLParallaxViewController: UIViewController {
     private(set) var backgroundImage: UIImage?
     
     private lazy var backgroundImageRotatedLeft: UIImage = {
-       return self.rotateImage(image: #imageLiteral(resourceName: "backgroundImage"), toOrientation: .left)
+       return self.rotateImage(image: #imageLiteral(resourceName: "backgroundImage"), toOrientation: .right)
     }()
     
     private lazy var backgroundImageRotatedRight: UIImage = {
-        return self.rotateImage(image: #imageLiteral(resourceName: "backgroundImage"), toOrientation: .right)
+        return self.rotateImage(image: #imageLiteral(resourceName: "backgroundImage"), toOrientation: .left)
     }()
     
     /**
