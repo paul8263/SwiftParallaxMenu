@@ -712,7 +712,7 @@ public class PLParallaxViewController: UIViewController {
             fatalError("You cannot set toSlideMenuStatus to bothClosed in function finishShowMenuViewControllerAnimating:toSlideMenuStatus:shouldComplete")
         }
         
-        let finishingAnimationDuration = 0.2
+        let finishingAnimationDuration = 0.3
         
         if shouldComplete {
             let baseMainViewOriginX = view.bounds.width * (1 - mainViewZoomScale) / 2
