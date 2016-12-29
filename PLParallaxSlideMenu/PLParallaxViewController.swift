@@ -269,6 +269,16 @@ public class PLParallaxViewController: UIViewController {
         }
     }
     
+    /**
+     Defined snapshot view tag
+     */
+    let snapshotViewTag = 999
+    
+    /**
+     Defined pan gesture success threshold
+     */
+    let panGestureSuccessPercent: CGFloat = 0.3
+    
 //    Container views
     
     private let mainViewControllerContainerView = UIView()
@@ -337,6 +347,26 @@ public class PLParallaxViewController: UIViewController {
     func configSlideMenu(withOffsetY offsetY: CGFloat, width: CGFloat) {
         configLeftSlideMenu(withOffsetY: offsetY, width: width)
         configRightSlideMenu(withOffsetY: offsetY, width: width)
+    }
+    
+    /**
+     Config left slide menu when device is landscape orientation
+     
+     - parameter withOffsetY: Y offset
+     */
+    func configLeftSlideMenuLandscape(withOffsetY offsetY: CGFloat) {
+        leftSlideMenuOffsetYLandscape = offsetY
+        setupLeftMenuContainerView()
+    }
+    
+    /**
+     Config right slide menu when device is landscape orientation
+     
+     - parameter withOffsetY: Y offset
+     */
+    func configRightSlideMenuLandscape(withOffsetY offsetY: CGFloat) {
+        rightSlideMenuOffsetYLandscape = offsetY
+        setupRightMenuContainerView()
     }
     
     /**
@@ -600,7 +630,7 @@ public class PLParallaxViewController: UIViewController {
         leftMenuContainerView.alpha = 0
         rightMenuContainerView.alpha = 0
         let snapshot = mainViewControllerContainerView.snapshotView(afterScreenUpdates: false)!
-        snapshot.tag = 999
+        snapshot.tag = snapshotViewTag
         mainViewControllerContainerView.addSubview(snapshot)
         mainViewController?.view.removeFromSuperview()
         
@@ -681,9 +711,12 @@ public class PLParallaxViewController: UIViewController {
         if toSlideMenuStatus == .bothClosed {
             fatalError("You cannot set toSlideMenuStatus to bothClosed in function finishShowMenuViewControllerAnimating:toSlideMenuStatus:shouldComplete")
         }
+        
+        let finishingAnimationDuration = 0.2
+        
         if shouldComplete {
             let baseMainViewOriginX = view.bounds.width * (1 - mainViewZoomScale) / 2
-            UIView.animate(withDuration: showMenuAnimationDuration, animations: {
+            UIView.animate(withDuration: finishingAnimationDuration, animations: {
                 self.mainViewControllerContainerView.transform = self.mainViewTransform
                 if toSlideMenuStatus == .leftOpened {
                     self.mainViewControllerContainerView.frame.origin.x = baseMainViewOriginX + self.mainViewZoomedOffsetXWithLeftMenuShown
@@ -745,7 +778,7 @@ public class PLParallaxViewController: UIViewController {
         }) { (finished) in
             self.mainViewControllerContainerView.addSubview(self.mainViewController.view)
             self.mainViewController.view.frame = self.view.frame
-            self.mainViewControllerContainerView.viewWithTag(999)?.removeFromSuperview()
+            self.mainViewControllerContainerView.viewWithTag(self.snapshotViewTag)?.removeFromSuperview()
             
             self.backgroundImageContainerView.transform = CGAffineTransform.identity
             
@@ -812,29 +845,29 @@ public class PLParallaxViewController: UIViewController {
             switch gesture.state {
             case .began:
                 let snapshot = mainViewControllerContainerView.snapshotView(afterScreenUpdates: false)!
-                snapshot.tag = 999
+                snapshot.tag = snapshotViewTag
                 mainViewControllerContainerView.addSubview(snapshot)
                 mainViewController?.view.removeFromSuperview()
             case .changed:
                 showMenuViewControllerAnimating(toSlideMenuStatus: .leftOpened, withPercent: percent)
             case .ended:
-                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .leftOpened, shouldComplete: percent >= 0.5)
+                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .leftOpened, shouldComplete: percent >= self.panGestureSuccessPercent)
             default:
-                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .leftOpened, shouldComplete: percent >= 0.5)
+                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .leftOpened, shouldComplete: percent >= self.panGestureSuccessPercent)
             }
         } else if gesture.edges == .right {
             switch gesture.state {
             case .began:
                 let snapshot = mainViewControllerContainerView.snapshotView(afterScreenUpdates: false)!
-                snapshot.tag = 999
+                snapshot.tag = snapshotViewTag
                 mainViewControllerContainerView.addSubview(snapshot)
                 mainViewController?.view.removeFromSuperview()
             case .changed:
                 showMenuViewControllerAnimating(toSlideMenuStatus: .rightOpened, withPercent: percent)
             case .ended:
-                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .rightOpened, shouldComplete: percent >= 0.5)
+                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .rightOpened, shouldComplete: percent >= self.panGestureSuccessPercent)
             default:
-                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .rightOpened, shouldComplete: percent >= 0.5)
+                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .rightOpened, shouldComplete: percent >= self.panGestureSuccessPercent)
             }
         }
     }
@@ -858,13 +891,13 @@ public class PLParallaxViewController: UIViewController {
         case .changed:
             showMenuViewControllerAnimating(toSlideMenuStatus: .leftOpened, withPercent: 1 - percent)
         case .ended:
-            if percent >= 0.5 {
+            if percent >= panGestureSuccessPercent {
                 showMainViewController(fromStatus: .leftOpened)
             } else {
                 finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .leftOpened, shouldComplete: true)
             }
         default:
-            if percent >= 0.5 {
+            if percent >= panGestureSuccessPercent {
                 showMainViewController(fromStatus: .leftOpened)
             } else {
                 finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .leftOpened, shouldComplete: true)
@@ -891,13 +924,13 @@ public class PLParallaxViewController: UIViewController {
         case .changed:
             showMenuViewControllerAnimating(toSlideMenuStatus: .rightOpened, withPercent: 1 - percent)
         case .ended:
-            if percent >= 0.5 {
+            if percent >= panGestureSuccessPercent {
                 showMainViewController(fromStatus: .rightOpened)
             } else {
                 finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .rightOpened, shouldComplete: true)
             }
         default:
-            if percent >= 0.5 {
+            if percent >= panGestureSuccessPercent {
                 showMainViewController(fromStatus: .leftOpened)
             } else {
                 finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .rightOpened, shouldComplete: true)
@@ -976,7 +1009,7 @@ public class PLParallaxViewController: UIViewController {
     public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         
-        coordinator.animate(alongsideTransition: nil) { (coordinator) in
+        coordinator.animate(alongsideTransition: nil) { (context) in
             self.setupLeftMenuContainerView()
             self.setupRightMenuContainerView()
             self.setupBackgroundImageView()

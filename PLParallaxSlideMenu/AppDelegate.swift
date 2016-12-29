@@ -31,10 +31,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         menuViewController.configBackground(withImage: UIImage(named: "backgroundImage")!)
         
-//        menuViewController.configRightSlideMenu(withOffsetY: 200, width: 150)
-//        menuViewController.configLeftSlideMenu(withOffsetY: 200, width: 150)
-        menuViewController.configRightSlideMenu(withOffsetY: 50, width: 150)
-        menuViewController.configLeftSlideMenu(withOffsetY: 50, width: 150)
+        menuViewController.configRightSlideMenu(withOffsetY: 200, width: 150)
+        menuViewController.configLeftSlideMenu(withOffsetY: 200, width: 150)
         menuViewController.configMainViewZoomedOffsetXWithSlideMenuShown(offsetX: 150)
         
         menuViewController.configLeftMenuGestureEnabled(enabled: true)
