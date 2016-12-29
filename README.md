@@ -4,8 +4,6 @@
 
 Left or Right slide menu with parallax effect.
 
-Currently does not support landscape orientation.
-
 ## How to Use & Config
 
 In AppDelegate.swift:

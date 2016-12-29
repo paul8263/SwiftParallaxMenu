@@ -118,6 +118,16 @@ public class PLParallaxViewController: UIViewController {
     private(set) var rightSlideMenuWidth = CGFloat(200)
     
     /**
+     The Y axis offset from the screen top to the top side of the left slide menu, when the device is in landscape orientation
+     */
+    private(set) var leftSlideMenuOffsetYLandscape = CGFloat(40)
+    
+    /**
+     The Y axis offset from the screen top to the top slde of the right slide menu, when the device is in landscape orientation
+     */
+    private(set) var rightSlideMenuOffsetYLandscape = CGFloat(40)
+    
+    /**
      Defines the x offset of the zoomed main menu when the left slide menu is shown
      */
     private(set) var mainViewZoomedOffsetXWithLeftMenuShown = CGFloat(100)
@@ -220,6 +230,14 @@ public class PLParallaxViewController: UIViewController {
      Background image displayed when either slide menu is shown
      */
     private(set) var backgroundImage: UIImage?
+    
+    private lazy var backgroundImageRotatedLeft: UIImage = {
+       return self.rotateImage(image: #imageLiteral(resourceName: "backgroundImage"), toOrientation: .left)
+    }()
+    
+    private lazy var backgroundImageRotatedRight: UIImage = {
+        return self.rotateImage(image: #imageLiteral(resourceName: "backgroundImage"), toOrientation: .right)
+    }()
     
     /**
      Determines whether the open left screen edge pan gesture is enabled
@@ -441,32 +459,53 @@ public class PLParallaxViewController: UIViewController {
     private func setupMainViewContainerView() {
         mainViewControllerContainerView.frame = view.frame
         mainViewController.view.frame = view.frame
+        mainViewControllerContainerView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+        mainViewController.view.autoresizingMask = [.flexibleHeight, .flexibleWidth]
     }
     
     /**
      Setup background image view
      */
     private func setupBackgroundImageView() {
-        view.insertSubview(backgroundImageContainerView, at: 0)
         backgroundImageContainerView.frame = view.frame
         backgroundImageContainerView.backgroundColor = UIColor.gray
         
-        backgroundImageContainerView.insertSubview(backgroundImageView, at: 0)
         backgroundImageView.frame = view.frame
         backgroundImageView.contentMode = .scaleToFill
         if let image = backgroundImage {
-            backgroundImageView.image = image
+            switch UIApplication.shared.statusBarOrientation {
+            case .portrait:
+                backgroundImageView.image = image
+            case .landscapeLeft:
+                backgroundImageView.image = backgroundImageRotatedLeft
+            case .landscapeRight:
+                backgroundImageView.image = backgroundImageRotatedRight
+            default:
+                backgroundImageView.image = image
+            }
         }
+        
+        backgroundImageContainerView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+        backgroundImageView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
     }
     
     /**
      Setup left menu container view
      */
     private func setupLeftMenuContainerView() {
-        leftMenuContainerView.frame = CGRect(x: view.frame.origin.x, y: view.frame.origin.y + leftSlideMenuOffsetY, width: leftSlideMenuWidth, height: view.frame.height - 2 * leftSlideMenuOffsetY)
+        let frame: CGRect!
+        if UIApplication.shared.statusBarOrientation == .landscapeLeft || UIApplication.shared.statusBarOrientation == .landscapeRight {
+            frame = CGRect(x: view.frame.origin.x, y: view.frame.origin.y + leftSlideMenuOffsetYLandscape, width: leftSlideMenuWidth, height: view.frame.height - 2 * leftSlideMenuOffsetYLandscape)
+        } else {
+            frame = CGRect(x: view.frame.origin.x, y: view.frame.origin.y + leftSlideMenuOffsetY, width: leftSlideMenuWidth, height: view.frame.height - 2 * leftSlideMenuOffsetY)
+        }
+        leftMenuContainerView.frame = frame
         leftMenuViewController?.view.frame = leftMenuContainerView.bounds
         leftMenuViewController?.view.backgroundColor = UIColor.clear
         leftMenuContainerView.isHidden = true
+        
+        leftMenuContainerView.autoresizingMask = [.flexibleRightMargin, .flexibleTopMargin, .flexibleBottomMargin]
+        leftMenuViewController?.view.autoresizingMask = [.flexibleRightMargin, .flexibleTopMargin, .flexibleBottomMargin]
         
         if leftMenuViewController == nil {
             leftScreenEdgePanGestureRecognizer?.isEnabled = false
@@ -477,10 +516,19 @@ public class PLParallaxViewController: UIViewController {
      Setup right menu container view
      */
     private func setupRightMenuContainerView() {
-        rightMenuContainerView.frame = CGRect(x: view.frame.width - rightSlideMenuWidth , y: view.frame.origin.y + rightSlideMenuOffsetY, width: rightSlideMenuWidth, height: view.frame.height - 2 * rightSlideMenuOffsetY)
+        let frame: CGRect!
+        if UIApplication.shared.statusBarOrientation == .landscapeLeft || UIApplication.shared.statusBarOrientation == .landscapeRight {
+            frame = CGRect(x: view.frame.width - rightSlideMenuWidth , y: view.frame.origin.y + rightSlideMenuOffsetYLandscape, width: rightSlideMenuWidth, height: view.frame.height - 2 * rightSlideMenuOffsetYLandscape)
+        } else {
+            frame = CGRect(x: view.frame.width - rightSlideMenuWidth , y: view.frame.origin.y + rightSlideMenuOffsetY, width: rightSlideMenuWidth, height: view.frame.height - 2 * rightSlideMenuOffsetY)
+        }
+        rightMenuContainerView.frame = frame
         rightMenuViewController?.view.frame = rightMenuContainerView.bounds
         rightMenuViewController?.view.backgroundColor = UIColor.clear
         rightMenuContainerView.isHidden = true
+        
+        rightMenuContainerView.autoresizingMask = [.flexibleLeftMargin, .flexibleTopMargin, .flexibleBottomMargin]
+        rightMenuViewController?.view.autoresizingMask = [.flexibleLeftMargin, .flexibleTopMargin, .flexibleBottomMargin]
         
         if rightMenuViewController == nil {
             rightScreenEdgePanGestureRecognizer?.isEnabled = false
@@ -649,7 +697,7 @@ public class PLParallaxViewController: UIViewController {
                     self.rightMenuContainerView.alpha = 1
                 }
                 self.backgroundImageContainerView.transform = CGAffineTransform.identity
-            }, completion: {(finished)in
+            }, completion: {(finished) in
                 self.slideMenuStatus = toSlideMenuStatus
             })
         } else {
@@ -698,6 +746,8 @@ public class PLParallaxViewController: UIViewController {
             self.mainViewControllerContainerView.addSubview(self.mainViewController.view)
             self.mainViewController.view.frame = self.view.frame
             self.mainViewControllerContainerView.viewWithTag(999)?.removeFromSuperview()
+            
+            self.backgroundImageContainerView.transform = CGAffineTransform.identity
             
             self.slideMenuStatus = .bothClosed
         }
@@ -869,6 +919,10 @@ public class PLParallaxViewController: UIViewController {
     override public func viewDidLoad() {
         super.viewDidLoad()
         
+        view.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+        
+        view.insertSubview(backgroundImageContainerView, at: 0)
+        backgroundImageContainerView.addSubview(backgroundImageView)
         view.addSubview(leftMenuContainerView)
         view.addSubview(rightMenuContainerView)
         view.addSubview(mainViewControllerContainerView)
@@ -922,8 +976,32 @@ public class PLParallaxViewController: UIViewController {
     public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         
-        fatalError("Currently screen rotation is not supported")
-        
+        coordinator.animate(alongsideTransition: nil) { (coordinator) in
+            self.setupLeftMenuContainerView()
+            self.setupRightMenuContainerView()
+            self.setupBackgroundImageView()
+        }
+    }
+    /**
+     Controls the rotation behaviours.
+     When slide menu is shown, rotation will be disabled
+     */
+    public override var shouldAutorotate: Bool {
+        if slideMenuStatus != .bothClosed {
+            return false
+        } else {
+            return true
+        }
+    }
+    /**
+     Rotate the image to the given orientation
+     
+     - parameter image: UIImage
+     - parameter toOrientation: The target orientation
+     - returns: The rotated image
+     */
+    private func rotateImage(image: UIImage, toOrientation orientation: UIImageOrientation) -> UIImage {
+        return UIImage(cgImage: image.cgImage!, scale: 1, orientation: orientation)
     }
  
 }
