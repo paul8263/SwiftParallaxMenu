@@ -83,12 +83,26 @@ public class PLParallaxViewController: UIViewController {
             case .bothClosed:
                 enableScreenEdgeGestureRecognizer()
                 disableCloseMenuPanGestureRecognizer()
+                
+                if isInterpolatingEffectEnabled {
+                    removeParallaxEffectFromView(fromView: backgroundImageContainerView)
+                }
+                
             case .leftOpened:
                 disableScreenEdgeGestureRecognizer()
                 enableCloseLeftMenuPanGestureRecognizer()
+                
+                if isInterpolatingEffectEnabled {
+                    addParallaxEffectToView(toView: backgroundImageContainerView)
+                }
+                
             case .rightOpened:
                 disableCloseMenuPanGestureRecognizer()
                 enableCloseRightMenuPanGestureRecognizer()
+                
+                if isInterpolatingEffectEnabled {
+                    addParallaxEffectToView(toView: backgroundImageContainerView)
+                }
             }
         }
     }
@@ -238,6 +252,15 @@ public class PLParallaxViewController: UIViewController {
      */
     private(set) var backgroundImage: UIImage?
     
+    /**
+     Determine background interpolating effect is enabled or not
+     */
+    private(set) var isInterpolatingEffectEnabled = true {
+        didSet {
+            setupBackgroundImageView()
+        }
+    }
+    
     private lazy var backgroundImageRotatedLeft: UIImage = {
        return self.rotateImage(image: #imageLiteral(resourceName: "backgroundImage"), toOrientation: .right)
     }()
@@ -319,6 +342,13 @@ public class PLParallaxViewController: UIViewController {
     func configBackground(withImage image: UIImage) {
         backgroundImage = image
         backgroundImageView.image = backgroundImage
+    }
+    
+    /**
+     Config parallax effect for background image
+     */
+    func configBackgroundParallaxEffectEnabled(enabled: Bool) {
+        isInterpolatingEffectEnabled = enabled
     }
     
     /**
@@ -505,10 +535,15 @@ public class PLParallaxViewController: UIViewController {
      Setup background image view
      */
     private func setupBackgroundImageView() {
-        backgroundImageContainerView.frame = view.frame
+        if isInterpolatingEffectEnabled {
+            backgroundImageContainerView.frame = view.frame.insetBy(dx: -20, dy: -20)
+        } else {
+            backgroundImageContainerView.frame = view.frame
+        }
+        
         backgroundImageContainerView.backgroundColor = UIColor.gray
         
-        backgroundImageView.frame = view.frame
+        backgroundImageView.frame = backgroundImageContainerView.bounds
         backgroundImageView.contentMode = .scaleToFill
         if let image = backgroundImage {
             switch UIApplication.shared.statusBarOrientation {
@@ -1046,6 +1081,20 @@ public class PLParallaxViewController: UIViewController {
      */
     private func rotateImage(image: UIImage, toOrientation orientation: UIImageOrientation) -> UIImage {
         return UIImage(cgImage: image.cgImage!, scale: 1, orientation: orientation)
+    }
+    
+    private func addParallaxEffectToView(toView: UIView) {
+        let horizontalEffect = UIInterpolatingMotionEffect(keyPath: "center.x", type: .tiltAlongHorizontalAxis)
+        horizontalEffect.maximumRelativeValue = 20
+        horizontalEffect.minimumRelativeValue = -20
+        let verticalEffect = UIInterpolatingMotionEffect(keyPath: "center.y", type: .tiltAlongVerticalAxis)
+        verticalEffect.maximumRelativeValue = 20
+        verticalEffect.minimumRelativeValue = -20
+        toView.motionEffects = [horizontalEffect, verticalEffect]
+    }
+    
+    private func removeParallaxEffectFromView(fromView: UIView) {
+        fromView.motionEffects = []
     }
 }
 

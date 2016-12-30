@@ -53,6 +53,7 @@ private func setupParallexMenuViewController() {
 | Function                                 | Explanation                              |
 | ---------------------------------------- | ---------------------------------------- |
 | configBackground(withImage image: UIImage) | Set background image                     |
+| configBackgroundParallaxEffectEnabled(enabled: Bool) | Enable or disable background parallax effect |
 | configLeftSlideMenu(withOffsetY offsetY: CGFloat, width: CGFloat) | Set left slide menu offset Y and width   |
 | configRightSlideMenu(withOffsetY offsetY: CGFloat, width: CGFloat) | Set right slide menu offset Y and width  |
 | configSlideMenu(withOffsetY offsetY: CGFloat, width: CGFloat) | Set both left and right slide menu       |
