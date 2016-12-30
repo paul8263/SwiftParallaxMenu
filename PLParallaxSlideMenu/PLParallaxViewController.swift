@@ -98,6 +98,13 @@ public class PLParallaxViewController: UIViewController {
     private var willTransitionToStatus: SlideMenuStatus = .bothClosed
     
     /**
+     Determine whether the view is animating
+     */
+    var isAnimating: Bool {
+        return slideMenuStatus == willTransitionToStatus
+    }
+    
+    /**
      The Y axis offset from the screen top to the top side of the left slide menu
     */
     private(set) var leftSlideMenuOffsetY = CGFloat(100)
@@ -470,6 +477,7 @@ public class PLParallaxViewController: UIViewController {
     
 //    ---------------------------------------------------
 //    Setup Functions
+    
     /**
      Add the view controller to container view
      
@@ -600,7 +608,7 @@ public class PLParallaxViewController: UIViewController {
         if leftMenuViewController == nil {
             return
         }
-        showMenuViewController(toSlideMenuStatus: .leftOpened)
+        showSlideViewController(toSlideMenuStatus: .leftOpened)
     }
     
     /**
@@ -610,7 +618,7 @@ public class PLParallaxViewController: UIViewController {
         if rightMenuViewController == nil {
             return
         }
-        showMenuViewController(toSlideMenuStatus: .rightOpened)
+        showSlideViewController(toSlideMenuStatus: .rightOpened)
     }
     
     /**
@@ -618,9 +626,9 @@ public class PLParallaxViewController: UIViewController {
      
      - parameter toSlideMenuStatus: The target SlideMenuStatus to switch to
      */
-    private func showMenuViewController(toSlideMenuStatus: SlideMenuStatus) {
+    private func showSlideViewController(toSlideMenuStatus: SlideMenuStatus) {
         if toSlideMenuStatus == .bothClosed {
-            fatalError("You cannot set toSlideMenuStatus to bothClosed in function showMenuViewController:toSlideMenuStatus")
+            fatalError("You cannot set toSlideMenuStatus to bothClosed in function showSlideViewController:toSlideMenuStatus")
         }
         
         willTransitionToStatus = toSlideMenuStatus
@@ -641,17 +649,14 @@ public class PLParallaxViewController: UIViewController {
             let mainViewOriginX = self.mainViewControllerContainerView.frame.origin.x
             if toSlideMenuStatus == .leftOpened {
                 self.mainViewControllerContainerView.frame.origin.x = mainViewOriginX + self.mainViewZoomedOffsetXWithLeftMenuShown
+                self.leftMenuContainerView.alpha = 1
             } else if toSlideMenuStatus == .rightOpened {
                 self.mainViewControllerContainerView.frame.origin.x = mainViewOriginX - self.mainViewZoomedOffsetXWithRightMenuShown
+                self.rightMenuContainerView.alpha = 1
             }
             
             self.setNeedsStatusBarAppearanceUpdate()
             
-            if toSlideMenuStatus == .leftOpened {
-                self.leftMenuContainerView.alpha = 1
-            } else if toSlideMenuStatus == .rightOpened {
-                self.rightMenuContainerView.alpha = 1
-            }
             self.backgroundImageContainerView.transform = CGAffineTransform.identity
         }) { (finished) in
             self.slideMenuStatus = toSlideMenuStatus
@@ -659,26 +664,40 @@ public class PLParallaxViewController: UIViewController {
     }
     
     /**
-     Private method for view controller showing animation with percent. Used by pan gestures.
+     Private function used for pan gesture, indicating the animation has began
      
      - parameter toSlideMenuStatus: The target SlideMenuStatus to switch to
-     - parameter withPercent: Current animation completion percent
      */
-    private func showMenuViewControllerAnimating(toSlideMenuStatus: SlideMenuStatus, withPercent percent: CGFloat) {
+    private func showSlideViewControllerAnimationBegan(toSlideMenuStatus: SlideMenuStatus) {
         if toSlideMenuStatus == .bothClosed {
-            fatalError("You cannot set toSlideMenuStatus to bothClosed in function showMenuViewControllerAnimating:toSlideMenuStatus:withPercent")
+            fatalError("You cannot set toSlideMenuStatus to bothClosed in function showSlideViewController:toSlideMenuStatus")
         }
-        if percent < 0 || percent > 1 {
-            fatalError("Illegal argument for percent in function showMenuViewController:toSlideMenuStatus:withPercent")
-        }
+        
         willTransitionToStatus = toSlideMenuStatus
         
         rightMenuContainerView.isHidden = toSlideMenuStatus == .leftOpened
         leftMenuContainerView.isHidden = toSlideMenuStatus == .rightOpened
         leftMenuContainerView.alpha = 0
         rightMenuContainerView.alpha = 0
-        
-        backgroundImageContainerView.transform = backgroundImageViewTransform
+        let snapshot = mainViewControllerContainerView.snapshotView(afterScreenUpdates: false)!
+        snapshot.tag = snapshotViewTag
+        mainViewControllerContainerView.addSubview(snapshot)
+        mainViewController?.view.removeFromSuperview()
+    }
+    
+    /**
+     Private function for view controller showing animation with percent. Used by pan gestures.
+     
+     - parameter toSlideMenuStatus: The target SlideMenuStatus to switch to
+     - parameter withPercent: Current animation completion percent
+     */
+    private func showSlideViewControllerAnimating(toSlideMenuStatus: SlideMenuStatus, withPercent percent: CGFloat) {
+        if toSlideMenuStatus == .bothClosed {
+            fatalError("You cannot set toSlideMenuStatus to bothClosed in function showSlideViewControllerAnimating:toSlideMenuStatus:withPercent")
+        }
+        if percent < 0 || percent > 1 {
+            fatalError("Illegal argument for percent in function showSlideViewController:toSlideMenuStatus:withPercent")
+        }
         
         let mainMenuZoomScaleWithPercent = 1 - (1 - mainViewZoomScale) * percent
         
@@ -686,19 +705,17 @@ public class PLParallaxViewController: UIViewController {
 
         let baseMainViewOriginX = view.bounds.width * (1 - mainViewZoomScale) / 2
         
-        self.mainViewControllerContainerView.transform = CGAffineTransform(scaleX: mainMenuZoomScaleWithPercent, y: mainMenuZoomScaleWithPercent)
+        mainViewControllerContainerView.transform = CGAffineTransform(scaleX: mainMenuZoomScaleWithPercent, y: mainMenuZoomScaleWithPercent)
         if toSlideMenuStatus == .leftOpened {
-            self.mainViewControllerContainerView.frame.origin.x = (baseMainViewOriginX + self.mainViewZoomedOffsetXWithLeftMenuShown) * percent
-        } else if toSlideMenuStatus == .rightOpened {
-            self.mainViewControllerContainerView.frame.origin.x = (baseMainViewOriginX - self.mainViewZoomedOffsetXWithRightMenuShown) * percent
-        }
-            
-        if toSlideMenuStatus == .leftOpened {
+            mainViewControllerContainerView.frame.origin.x = (baseMainViewOriginX + mainViewZoomedOffsetXWithLeftMenuShown) * percent
             self.leftMenuContainerView.alpha = percent
+            
         } else if toSlideMenuStatus == .rightOpened {
+            mainViewControllerContainerView.frame.origin.x = (baseMainViewOriginX - mainViewZoomedOffsetXWithRightMenuShown) * percent
             self.rightMenuContainerView.alpha = percent
         }
-        self.backgroundImageContainerView.transform = CGAffineTransform(scaleX: backgroundImageZoomScaleWithPercent, y: backgroundImageZoomScaleWithPercent)
+        
+        backgroundImageContainerView.transform = CGAffineTransform(scaleX: backgroundImageZoomScaleWithPercent, y: backgroundImageZoomScaleWithPercent)
     }
     
     /**
@@ -709,7 +726,7 @@ public class PLParallaxViewController: UIViewController {
      */
     private func finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: SlideMenuStatus, shouldComplete: Bool) {
         if toSlideMenuStatus == .bothClosed {
-            fatalError("You cannot set toSlideMenuStatus to bothClosed in function finishShowMenuViewControllerAnimating:toSlideMenuStatus:shouldComplete")
+            fatalError("You cannot set toSlideMenuStatus to bothClosed in function finishshowSlideViewControllerAnimating:toSlideMenuStatus:shouldComplete")
         }
         
         let finishingAnimationDuration = 0.3
@@ -785,6 +802,7 @@ public class PLParallaxViewController: UIViewController {
             self.slideMenuStatus = .bothClosed
         }
     }
+    
     /**
      Setup screen edge pan gesture
      
@@ -841,34 +859,25 @@ public class PLParallaxViewController: UIViewController {
     
     func screenEdgePanGestureTriggered(gesture: UIScreenEdgePanGestureRecognizer) {
         let percent = fabs(gesture.translation(in: view).x) / view.bounds.size.width
-        if gesture.edges == .left {
-            switch gesture.state {
-            case .began:
-                let snapshot = mainViewControllerContainerView.snapshotView(afterScreenUpdates: false)!
-                snapshot.tag = snapshotViewTag
-                mainViewControllerContainerView.addSubview(snapshot)
-                mainViewController?.view.removeFromSuperview()
-            case .changed:
-                showMenuViewControllerAnimating(toSlideMenuStatus: .leftOpened, withPercent: percent)
-            case .ended:
-                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .leftOpened, shouldComplete: percent >= self.panGestureSuccessPercent)
-            default:
-                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .leftOpened, shouldComplete: percent >= self.panGestureSuccessPercent)
-            }
-        } else if gesture.edges == .right {
-            switch gesture.state {
-            case .began:
-                let snapshot = mainViewControllerContainerView.snapshotView(afterScreenUpdates: false)!
-                snapshot.tag = snapshotViewTag
-                mainViewControllerContainerView.addSubview(snapshot)
-                mainViewController?.view.removeFromSuperview()
-            case .changed:
-                showMenuViewControllerAnimating(toSlideMenuStatus: .rightOpened, withPercent: percent)
-            case .ended:
-                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .rightOpened, shouldComplete: percent >= self.panGestureSuccessPercent)
-            default:
-                finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: .rightOpened, shouldComplete: percent >= self.panGestureSuccessPercent)
-            }
+        let toStatus: SlideMenuStatus!
+        switch gesture.edges {
+        case UIRectEdge.left:
+            toStatus = .leftOpened
+        case UIRectEdge.right:
+            toStatus = .rightOpened
+        default:
+            fatalError("Gesture starting edges only support left and right")
+        }
+        
+        switch gesture.state {
+        case .began:
+            showSlideViewControllerAnimationBegan(toSlideMenuStatus: toStatus)
+        case .changed:
+            showSlideViewControllerAnimating(toSlideMenuStatus: toStatus, withPercent: percent)
+        case .ended:
+            finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: toStatus, shouldComplete: percent >= self.panGestureSuccessPercent)
+        default:
+            finishShowMenuViewCntrollerAnimating(toSlideMenuStatus: toStatus, shouldComplete: percent >= self.panGestureSuccessPercent)
         }
     }
     
@@ -889,7 +898,7 @@ public class PLParallaxViewController: UIViewController {
         case .began:
             break
         case .changed:
-            showMenuViewControllerAnimating(toSlideMenuStatus: .leftOpened, withPercent: 1 - percent)
+            showSlideViewControllerAnimating(toSlideMenuStatus: .leftOpened, withPercent: 1 - percent)
         case .ended:
             if percent >= panGestureSuccessPercent {
                 showMainViewController(fromStatus: .leftOpened)
@@ -922,7 +931,7 @@ public class PLParallaxViewController: UIViewController {
         case .began:
             break
         case .changed:
-            showMenuViewControllerAnimating(toSlideMenuStatus: .rightOpened, withPercent: 1 - percent)
+            showSlideViewControllerAnimating(toSlideMenuStatus: .rightOpened, withPercent: 1 - percent)
         case .ended:
             if percent >= panGestureSuccessPercent {
                 showMainViewController(fromStatus: .rightOpened)
@@ -1015,6 +1024,7 @@ public class PLParallaxViewController: UIViewController {
             self.setupBackgroundImageView()
         }
     }
+    
     /**
      Controls the rotation behaviours.
      When slide menu is shown, rotation will be disabled
@@ -1026,6 +1036,7 @@ public class PLParallaxViewController: UIViewController {
             return true
         }
     }
+    
     /**
      Rotate the image to the given orientation
      
@@ -1036,7 +1047,6 @@ public class PLParallaxViewController: UIViewController {
     private func rotateImage(image: UIImage, toOrientation orientation: UIImageOrientation) -> UIImage {
         return UIImage(cgImage: image.cgImage!, scale: 1, orientation: orientation)
     }
- 
 }
 
 extension PLParallaxViewController: UIGestureRecognizerDelegate {
@@ -1054,4 +1064,3 @@ extension PLParallaxViewController: UIGestureRecognizerDelegate {
         return false
     }
 }
-
