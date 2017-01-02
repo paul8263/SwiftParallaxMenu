@@ -893,13 +893,15 @@ public class PLParallaxViewController: UIViewController {
     }
     
     func screenEdgePanGestureTriggered(gesture: UIScreenEdgePanGestureRecognizer) {
-        let percent = fabs(gesture.translation(in: view).x) / view.bounds.size.width
+        let percent: CGFloat!
         let toStatus: SlideMenuStatus!
         switch gesture.edges {
         case UIRectEdge.left:
             toStatus = .leftOpened
+            percent = min(fabs(gesture.translation(in: view).x) / (view.bounds.size.width * (1 - mainViewZoomScale) / 2 + mainViewZoomedOffsetXWithLeftMenuShown), 1.0)
         case UIRectEdge.right:
             toStatus = .rightOpened
+            percent = min(fabs(gesture.translation(in: view).x) / (view.bounds.size.width * (1 - mainViewZoomScale) / 2 + mainViewZoomedOffsetXWithRightMenuShown), 1.0)
         default:
             fatalError("Gesture starting edges only support left and right")
         }
@@ -928,7 +930,7 @@ public class PLParallaxViewController: UIViewController {
     }
     
     func closeLeftMenuPanGestureTriggered(gesture: UIPanGestureRecognizer) {
-        let percent = fabs(gesture.translation(in: view).x) / view.bounds.size.width
+        let percent = min(fabs(gesture.translation(in: view).x) / (view.bounds.size.width * (1 - mainViewZoomScale) / 2 + mainViewZoomedOffsetXWithLeftMenuShown), 1.0)
         switch gesture.state {
         case .began:
             break
@@ -961,7 +963,7 @@ public class PLParallaxViewController: UIViewController {
     }
     
     func closeRightMenuPanGestureTriggered(gesture: UIPanGestureRecognizer) {
-        let percent = fabs(gesture.translation(in: view).x) / view.bounds.size.width
+        let percent = min(fabs(gesture.translation(in: view).x) / (view.bounds.size.width * (1 - mainViewZoomScale) / 2 + mainViewZoomedOffsetXWithRightMenuShown), 1.0)
         switch gesture.state {
         case .began:
             break
